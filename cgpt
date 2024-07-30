@@ -1,0 +1,73 @@
+gem install rails
+rails new recipe_app
+cd recipe_app
+
+rails generate model User name:string email:string
+rails generate model Recipe title:string description:text user:references
+rails generate model Comment content:text user:references recipe:references
+
+rails db:migrate
+
+app/models/user.rb
+class User < ApplicationRecord
+  has_many :recipes
+  has_many :comments
+  validates :name, presence: true
+  validates :email, presence: true, uniqueness: true
+end
+
+app/models/comment.rb
+app/models/recipe.rb
+class Recipe < ApplicationRecord
+  belongs_to :user
+  has_many :comments
+  validates :title, presence: true
+  validates :description, presence: true
+end
+
+
+rails generate controller Users
+rails generate controller Recipes
+rails generate controller Comments
+
+app/views/recipes/index.html.erb
+<h1>レシピ一覧</h1>
+
+<%= link_to '新しいレシピを作成', new_recipe_path %>
+
+<ul>
+  <% @recipes.each do |recipe| %>
+    <li>
+      <%= link_to recipe.title, recipe_path(recipe) %>
+    </li>
+  <% end %>
+</ul>
+
+config/routes.rb
+Rails.application.routes.draw do
+  resources :users
+  resources :recipes do
+    resources :comments, only: [:create]
+  end
+end
+
+gem 'devise'
+bundle install
+rails generate devise:install
+rails generate devise User
+rails db:migrate
+
+rails active_storage:install
+rails db:migrate
+
+class Recipe < ApplicationRecord
+  has_one_attached :image
+end
+
+<%= image_tag @recipe.image if @recipe.image.attached? %>
+
+
+heroku create
+git push heroku main
+heroku run rails db:migrate
+
